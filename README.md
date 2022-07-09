@@ -7,3 +7,6 @@ For example,
   We can then enter the values into a program using linear regression to tell us the likely true path of the cannonball.
   
 For this program, the user enters the number of "measurements" to be taken, but then the "measurements" are random numbers, intentially generated to produce a linear regression.
+
+This project was inspired by my love for Numerical Methods in Physics, which I took at Liberty University.
+Such a fascinating course!
