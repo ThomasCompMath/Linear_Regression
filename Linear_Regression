@@ -1,0 +1,231 @@
+# Python Linear Regression example for video
+# Best-fit Linear Regression in Numerical Methods
+# The concrete example will have to do with predicting velocity
+# Add a random slope
+
+import numpy as np                          # Used for numpy arrays
+import matplotlib.pyplot as plt             # Needed to graph
+plt.clf()                                   # Clear plot memory from previous run
+import math                                 # Needed to take square root
+import os                                   # Used to clear the console
+
+os.system('cls')
+
+
+
+
+
+
+
+
+
+#---------------------------------------------------------------------------------------
+# Generate random velocity values that have a linear fit for each time value.
+
+import random                               # Used to generate random numbers
+
+number_of_measurements = int(input('How many velocity measurements do you want?\n'))   # For scalability
+points = np.empty((number_of_measurements,2), dtype = np.float64)           # Create a 2D array
+n = points.shape[0]
+
+sign_for_tilt = random.randint(0,1)                                         # Randomly generate a positive or negative offset
+if sign_for_tilt == 0:
+    random_tilt = random.randint(1,7)                                       # Random slope for the best-fit line
+if sign_for_tilt == 1:
+    random_tilt = -random.randint(1,7)
+random_offset = random.randint(0,4)*random_tilt
+
+sign = random.randint(0,1)
+if sign == 0:
+    random_signed_offset = -random_offset
+if sign == 1:
+    random_signed_offset = random_offset
+
+
+for i in range(n+1):                                                        # Shift each point off the line by the random offset
+    points[i-1][0] = i-1
+    points[i-1][1] = random_tilt * i + random_signed_offset
+    
+    sign = random.randint(0,1)                                              # Generate a new random offset
+    random_offset = random.randint(0,4)
+    if sign == 0:
+        random_signed_offset = -random_offset
+    if sign == 1:
+        random_signed_offset = random_offset
+print("\n\n ------------------------------------------------------------------")
+print("The 'measured' values for the velocity at each time are as follows: \n\n")
+print("   t / v")
+print(points)
+print("------------------------------------------------------------------\n\n\n")
+
+
+
+
+
+
+
+
+
+
+
+
+
+#---------------------------------------------------------------------------------------
+# Graph the points in a scatter plot
+
+x_values = points[:,0]
+y_values = points[:,1]
+plt.scatter(x_values, y_values, color = 'red')
+plt.xlim(-4,x_values[n-1]+4)
+if sign_for_tilt == 0:
+    plt.ylim(-10,y_values[n-1]+10)
+else:
+    plt.ylim(y_values[n-1]-10,10)
+
+
+
+
+
+
+
+
+
+
+
+
+#---------------------------------------------------------------------------------------
+# Calculate Linear Regression using Least-Squares method
+
+    # Sum all the time values
+sum_of_time_values = 0                                                      # Initialize to 0 seconds
+for i in range(n):                                                          # i, and thus the time, goes from 0 to n seconds
+    current_value = points[i][0]
+    sum_of_time_values += current_value
+
+    # Sum all the velocity values
+sum_of_velocity_values = 0                                                  # Initialize to 0 meters per second
+for i in range(n):                                                          # i goes from 0 to n, thus there are n entries for velocity measurements 
+    current_value = points[i][1]
+    sum_of_velocity_values += current_value 
+
+    # Sum the squares of all the time values
+sum_of_time_values_squared = 0
+for i in range(n):
+    current_value = points[i][0]
+    current_value_squared = current_value * current_value
+    sum_of_time_values_squared += current_value_squared
+    
+    # Sum the multiples of each time multiplied by its velocity
+sum_of_products = 0
+for i in range(n):
+    current_value_time = points[i][0]
+    current_value_velocity = points[i][1]
+    current_product = current_value_time * current_value_velocity
+    sum_of_products += current_product
+    
+    # Calculate the average for time and velocity
+mean_time = sum_of_time_values / points.shape[0]
+mean_velocity = sum_of_velocity_values / points.shape[0]
+print("The mean velocity value is: ", round(mean_velocity, 2))
+
+    # Calculate the slope
+slope = ( points.shape[0] * sum_of_products - sum_of_time_values * sum_of_velocity_values ) / ( points.shape[0] * sum_of_time_values_squared - sum_of_time_values * sum_of_time_values )
+
+    # Calculate the y-intercept
+y_intercept = mean_velocity - slope * mean_time
+
+if sign_for_tilt == 0:
+    print("The equation of the best-fit line is: v_f = ", round(y_intercept, 2), " + ", round(slope, 2), " * time")
+if sign_for_tilt == 1:
+        print("The equation of the best-fit line is: v_f = ", round(y_intercept, 2), " ", round(slope, 2), " * time")
+print("------------------------------------------------------------------\n\n\n")
+
+# Graph Best-Fit line over data points
+    # Generate values to graph
+y_value = []
+for i in range(n):
+    y_value.append(points[i][0] * slope + y_intercept)
+plt.plot(y_value)
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#---------------------------------------------------------------------------------------
+# Calculate Error
+
+    # Sum all the time values
+# sum_of_time_values is calculated above           
+    
+    # Sum all the velocity values
+# sum_of_velocity_values is calculated above
+    
+    # Calculate a0 + a1 * xi
+# This is the y_value of the best-fit line for each time value
+# This was calculated above, and it is every item in the list y_value
+   
+    # Sum every (yi - yBar)^2
+# The mean y value was calculated above
+sum_of_current_minus_average_squared = 0
+for i in range(n):
+    sum_of_current_minus_average_squared += (points[i][1] - mean_velocity)**2
+    
+    # Sum every (yi - a0 - a1 * xi)^2
+longer_sum = 0
+for i in range(n):
+        longer_sum += ( points[i][1] - y_value[i] )**2
+    
+    # The standard deviation equals the square root of ( sum(yi - yBar)^2 divided by (n - 1))
+standard_deviation = math.sqrt( ( sum_of_current_minus_average_squared ) / ( n-1 ) )
+    
+    # The standard error of the estimates equals the square root of ( sum(yi - a0 - a1 * xi)^2 divided by (n - 2))
+standard_error_of_the_estimate = math.sqrt( ( longer_sum ) / ( n-2 ) )
+    
+    # Check that the standard error of the estimate is less than the standard deviation
+if (standard_error_of_the_estimate < standard_deviation):
+    print("The model has merit, because the standard error of the estimate is less than the standard deviation.")
+else:
+    print("OOPS!!!! The standard error of the estimate is not less than the standard deviation!")
+    
+    # Calculate the percentage of how much uncertainty has been explained by the original model:
+explained_uncertainty = ( (sum_of_current_minus_average_squared - longer_sum) / sum_of_current_minus_average_squared ) * 100
+        
+
+print("The model indicates that, ", round(explained_uncertainty, 2),"% of the original uncertainty has been explained by the linear model.")
+print("------------------------------------------------------------------\n\n\n")
+print("The standard deviation is: ", round(standard_deviation, 2))
+print("The standard error of the estimate is: ", round(standard_error_of_the_estimate, 2))
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
